@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="css/tailwind.css">
+    <!-- jsDelivr :: Sortable :: Latest (https://www.jsdelivr.com/package/npm/sortablejs) -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+</head>
+
+<body>
+    <div class="min-h-screen bg-gray-200">
+        <!-- Page Content -->
+        <main>
+            <br>
+            <div class="bg-white rounded-lg mx-auto w-10/12 shadow-lg shadow-gray-500">
+                <div class="bg-green-500 text-center rounded-t-lg">
+                    <h4 class="text-white font-bold text-xl pt-2 pb-2">Bloque de Script</h4>
+                </div>
+                <div class="grid grid-cols-6 gap-2 mb-2">
+                    <div class="col-span-6 sm:col-span-1"></div>
+                    <div class="col-span-6 sm:col-span-4">
+                        <div class="my-2 rounded-lg border shadow-sm mx-2">
+                            <div x-data="data()" x-init="ordenar()">
+                                <div class="rounded-t-lg bg-gray-300 border text-center">
+                                    <p class="text-lg py-2 text-gray-800 font-semibold">Total tareas <span class="text-lg py-2 text-gray-800 font-semibold" x-text="totalTareas"></span></p>
+                                </div>
+                                <div class="grid grid-cols-6 gap-2 mb-2">
+                                    <div class="col-span-6 sm:col-span-1 sm:text-right mt-2 ml-2">
+                                        <label class="font-semibold text-gray-800">Buscar</label>
+                                    </div>
+                                    <div class="col-span-6 sm:col-span-5 mt-2 mr-2">
+                                        <input class="border-2 border-blue-400 rounded-md w-full py-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:shadow-md focus:shadow-blue-400" type="text" x-model="search">
+                                    </div>
+                                </div>
+                
+                                <form x-on:submit.prevent="save()">
+                                <div class="grid grid-cols-6 gap-2 mb-2">
+                                    <div class="col-span-6 sm:col-span-1 text-left sm:text-right ml-2">
+                                        <label class="text-gray-800 font-semibold" for="task">Agregar</label>
+                                    </div>
+                                    <div class="col-span-6 sm:col-span-4 mr-2 sm:mr-0">
+                                        <input class="w-full border-2 border-blue-400 rounded-md py-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:shadow-md focus:shadow-blue-400" type="text" x-model="task">
+                                    </div>
+                                    <div class="col-span-6 sm:col-span-1 mr-2">
+                                        <button class="w-full rounded-lg bg-green-500 text-center text-white hover:bg-green-700 py-2" type="submit">Guardar</button>
+                                    </div>
+                                </div>
+                                </form>
+                                <div class="grid grid-cols-8 gap-2 mb-2">
+                                    <div class="col-span-0 sm:col-span-1">
+                                    </div>
+                                    <div class="col-span-8 sm:col-span-6">
+                                        <table class="rounded-lg border-2 border-gray-900 bg-white w-full">
+                                            <thead class="bg-gray-900 text-white font-semibold">
+                                                <tr>
+                                                    <td class="border-r-2 border-r-white pl-2 py-2">Completado</td>
+                                                    <td class="border-r-2 border-r-white pl-2 py-2">Tarea</td>
+                                                    <td class="pl-2 py-2">Eliminar</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody x-ref="items">
+                                                <template x-for="tarea in filterTarea()">
+                                                    <tr class="">
+                                                        <td class="text-right pr-2">
+                                                            <input type="checkbox" x-model="tarea.completed" class="mt-2 w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                                        </td>
+                                                        <td>
+                                                            <span @click="tarea.editMode=true" x-show="!tarea.editMode" x-text="tarea.task" class="font-semibold text-sm pl-2"></span>
+                                                            <input @keyup.enter="tarea.editMode = false" type="text" x-show="tarea.editMode" x-model="tarea.task" class="w-full border-2 border-blue-400 rounded-md py-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:shadow-md focus:shadow-blue-400">
+                                                        </td>
+                                                        <td>
+                                                            <button @click="remove(tarea)" class="bg-red-500 border rounded-md text-white hover:bg-red-700 w-8 pb-1 font-extrabold ml-2">&times;</button>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                            </tbody>
+                                        </table>
+                                        <button @click="tareas = []" class="w-full bg-red-500 text-white font-semibold text-center hover:bg-red-700 border rounded-md py-2 mt-2">Eliminar tareas</button>
+                                    </div>
+                                    <div class="col-span-0 sm:col-span-1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-span-6 sm:col-span-1"></div>
+                </div>
+            </div>
+
+            
+        </main>
+    </div>
+    <script>
+        function data() {
+            return {
+                search: "",
+                task: "",
+                tareas: [{ completed: true, task: 'Sacar la basura' }, { completed: false, task: 'hacer aseo' }, { completed: false, task: 'hacer ejercicio' }, { completed: false, task: 'programar' }, { completed: false, task: 'lavar la losa' }],
+                ordenar(){
+                    Sortable.create(this.$refs.items)
+                },
+                completed(tarea) {
+                    return tarea.completed
+                },
+                incompleted(tarea) {
+                    return !tarea.completed
+                },
+                totalTareas() {
+                    return this.tareas.length
+                },
+                filterTarea() {
+                    return this.tareas.filter((tarea) => tarea.task.toLowerCase().includes(this.search.toLowerCase()))
+                },
+                save() {
+                    this.tareas.push({
+                        completed: false,
+                        task: this.task
+                    })
+                    this.task = ""
+                },
+                remove(tarea_eliminar) {
+                    this.tareas = this.tareas.filter((tarea) => tarea != tarea_eliminar)
+                }
+            }
+        }
+    </script>
+
+</body>
+
+</html>
